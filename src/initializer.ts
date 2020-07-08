@@ -1,8 +1,7 @@
 import * as chalk from 'chalk';
-import * as path from 'path';
 import * as process from 'process';
 import * as inquirer from 'inquirer';
-import * as _ from 'lodash';
+import * as path from 'path';
 import { spawn } from 'cross-spawn';
 import { TemplateExtractor } from './template-extractor';
 import { UserInitInput } from "./interfaces";
@@ -26,18 +25,21 @@ export class Initializer {
 
   }
 
-  private getInquirerQuestions(): inquirer.Questions {
+  private getInquirerQuestions(): inquirer.QuestionCollection {
+    const baseName = path.basename(path.resolve())
     // The name properties correspond to the variables in the package.json template file
     return [
       {
         type: 'input',
         name: 'name',
-        message: 'Name of your project for package.json'
+        message: 'Name of your project for package.json',
+        default: baseName
       },
       {
         type: 'input',
         name: 'id',
-        message: 'Unique id for this report in Java package notation (e.g. net.leanix.barcharts)'
+        message: 'Unique id for this report in Java package notation',
+        default: `net.leanix.report.${baseName}`
       },
       {
         type: 'input',
@@ -47,32 +49,32 @@ export class Initializer {
       {
         type: 'input',
         name: 'title',
-        message: 'A title to be shown in LeanIX when report is installed'
+        message: 'A title to be shown in LeanIX when report is installed',
+        default: baseName
       },
       {
         type: 'input',
         name: 'description',
-        message: 'Description of your project'
+        message: 'Description of your project',
+        default: 'A LeanIX custom report'
       },
       {
         type: 'input',
         name: 'licence',
-        message: 'Which licence do you want to use for this project? (Default: UNLICENSED)'
+        message: 'Which licence do you want to use for this project?',
+        default: 'UNLICENCED'
       },
       {
         type: 'input',
         name: 'host',
-        message: 'Which host do you want to work with? (Default: app.leanix.net)'
-      },
-      {
-        type: 'input',
-        name: 'workspace',
-        message: 'Which is the workspace you want to test your report in?'
+        message: 'Which host do you want to work with?',
+        default: 'app.leanix.net'
       },
       {
         type: 'input',
         name: 'apitoken',
-        message: 'API-Token for Authentication (see: https://dev.leanix.net/docs/authentication#section-generate-api-tokens)'
+        message: 'API-Token for Authentication (see: https://dev.leanix.net/docs/authentication#section-generate-api-tokens)',
+        default: ''
       },
       {
         type: 'confirm',
@@ -84,21 +86,15 @@ export class Initializer {
         when: answers => answers.behindProxy,
         type: 'input',
         name: 'proxyURL',
-        message: 'Proxy URL?'
+        message: 'Proxy URL?',
+        default: ''
       }
     ];
   }
 
   private handleDefaultAnswers(answers: inquirer.Answers) {
-    answers = _.mapValues(answers, (val) => val === '' ? undefined : val);
-    return _.defaults(answers, {
-      licence: 'UNLICENSED',
-      host: 'app.leanix.net',
-      apitoken: '',
-      workspace: '',
-      proxyURL: '',
-      'readme_title': answers.title || answers.name
-    });
+    const { title, name, proxyURL = '' } = answers
+    return { ...answers, proxyURL, 'readme_title': title || name };
   }
 
   private installViaNpm(): Promise<any> {

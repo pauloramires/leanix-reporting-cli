@@ -1,7 +1,6 @@
 import * as chalk from 'chalk';
 import * as opn from 'opn';
 import * as jwtDecode from 'jwt-decode';
-import * as _ from 'lodash';
 import { spawn } from 'cross-spawn';
 import { PathHelper } from './path-helper';
 import { ApiTokenResolver } from './api-token-resolver';
@@ -36,12 +35,13 @@ export class DevStarter {
     const host = 'https://' + config.host;
 
     let accessTokenHash = accessToken ? `#access_token=${accessToken}` : '';
-    let workspace = accessToken ? this.getWorkspaceFromAccesToken(accessToken) :  config.workspace;
+    let workspace = this.getWorkspaceFromAccesToken(accessToken);
 
-    if (_.isEmpty(workspace)) {
+    if (!workspace) {
       console.error(chalk.red('Workspace not specified. The local server can\'t be started.'));
       return new Promise(null);
     }
+
     console.log(chalk.green(`Your workspace is ${workspace}`));
 
     const baseLaunchUrl = `${host}/${workspace}/reporting/dev?url=${urlEncoded}`;
@@ -89,11 +89,9 @@ export class DevStarter {
   }
 
   private getAccessToken(config: LxrConfig): Promise<string> {
-    if (!_.isEmpty(config.apitoken)) {
-      return ApiTokenResolver.getAccessToken('https://' + config.host, config.apitoken, config.proxyURL);
-    } else {
-      return Promise.resolve(null);
-    }
+    return config.apitoken
+      ? ApiTokenResolver.getAccessToken('https://' + config.host, config.apitoken, config.proxyURL)
+      : Promise.resolve(null);
   }
 
   private openUrlInBrowser(url: string) {

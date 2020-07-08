@@ -21,7 +21,8 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env']
+            presets: ['@babel/preset-env'],
+            plugins: ['@babel/plugin-transform-runtime']
           }
         }
       },
@@ -29,7 +30,7 @@ module.exports = {
       /**
        * Bundle CSS, images and fonts
        */
-      { test: /\.css$/, use: ['style-loader', 'css-loader'] },
+      { test: /\.css$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       { test: /\.(otf|ttf|woff|woff2)$/, use: ['url-loader?limit=10000'] },
       { test: /\.(jpg|png|gif)$/, use: ['url-loader?limit=10000'] },
       { test: /\.(eot|svg)$/, use: ['file-loader'] }
@@ -39,9 +40,11 @@ module.exports = {
     /**
      * Copy assets into dist folder.
      */
-    new CopyWebpackPlugin([
-      { from: 'src/assets', to: 'assets' }
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'src/assets', to: 'assets' }
+      ]
+    }),
 
     /**
      * Insert created bundles as script tags at the end
